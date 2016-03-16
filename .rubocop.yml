@@ -1,0 +1,11 @@
+AllCops:
+  Include:
+    - 'Rakefile'
+    - 'lib/**'
+    - '*.gemspec'
+
+Metrics/LineLength:
+  Enabled: false
+
+Documentation:
+  Enabled: false

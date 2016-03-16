@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# required for setting the guest capabilities
+require_relative 'vagrant_rancheros_guest_plugin.rb'
+
+Vagrant.configure(2) do |config|
+  # global config settings
+  config.vm.box   = "rancherio/rancheros"
+  config.vm.box_version = ">=0.4.1"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # define the rancher-server guest
+  config.vm.define "rancher-server" do |node|
+    node.vm.hostname = "rancher-server"
+    node.vm.network "private_network", ip: "192.168.33.100"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 1536
+    end
+
+    node.vm.provision :rancher do |rancher|
+      rancher.hostname = "192.168.33.100"
+      rancher.deactivate = true
+      rancher.labels = ["role=server"]
+    end
+  end
+
+  # define the rancher-agent guest
+  config.vm.define "rancher-agent" do |node|
+    node.vm.hostname = "rancher-agent"
+    node.vm.network "private_network", ip: "192.168.33.101"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = 512
+    end
+
+    node.vm.provision :rancher do |rancher|
+      rancher.role = "agent"
+      rancher.hostname = "192.168.33.100"
+      rancher.labels = ["role=agent"]
+    end
+  end
+end

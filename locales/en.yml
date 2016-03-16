@@ -1,0 +1,44 @@
+en:
+  vagrant_rancher:
+    errors:
+      generic_error: |-
+        The vagrant-rancher plugin encountered an error.
+      docker_connection: |-
+        Could not connect to Docker daemon.
+      rancher_server_container: |-
+        Could not start the rancher server container. For more details,
+        please check the logs of the failed container by running the
+        following command on the Docker host.
+
+          docker logs rancher-server
+      rancher_agent_container: |-
+        Could not start the rancher agent bootstrap container. For more
+        details, please check the logs of the failed container by running
+        the following command on the Docker host.
+
+          docker logs rancher-agent-bootstrap
+      api_connection_timeout: |-
+        Error waiting for API to become available for
+        endpoint http://%{host}:%{port}.
+      api_connection_error: |-
+        There was an error connecting to the Rancher API endpoint at
+        http://%{host}:%{port}
+
+        The error returned was
+
+        %{error}
+      agent_registration_timeout: |-
+        Timeout waiting for agent to register to the Default project.
+      http_response_code: |-
+        Received a status code of %{code} when calling '%{method}' on
+        the Rancher API.
+
+        http://%{host}:%{port}%{path}
+
+        The error returned was
+
+        %{error}
+      project_not_found: |-
+        Unable to find project 'Default' in Rancher
+      host_not_found: |-
+        The Vagrant guest was not found in project %{project_id}

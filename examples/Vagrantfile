@@ -1,0 +1,51 @@
+Vagrant.configure(2) do |config|
+  # start with a standard box
+  config.vm.box = "ubuntu/trusty64"
+
+  # in order to communicate with the api, we need to set
+  # a static, private ip address. this also allows for
+  # other vagrant guests to run agents and connect to the
+  # rancher server.
+  config.vm.network "private_network", ip: "192.168.33.100"
+
+  # increase the ram allotment to accomodate rancher
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+  end
+
+  # install docker on the guest
+  config.vm.provision :docker
+
+  # start the rancher server and agent
+  config.vm.provision :rancher do |rancher|
+    # the role to assign to the guest. can be either
+    # 'server' or 'agent', and 'server' implies 'agent'
+    # as well
+    rancher.role = "server"
+
+    # required parameter that instructs the provisioner
+    # how to reach the rancher server api endpoint
+    rancher.hostname = "192.168.33.100"
+
+    # this will not adjust the port rancher listens on
+    # yet, so changing this parameter will likely cause
+    # something to break
+    rancher.port = 8080
+
+    # version (tag) of the rancher server to deploy
+    rancher.version = "v0.63.1"
+
+    # do not deactivate the host, resulting in it not
+    # being scheduled upon (useful when you want the server
+    # to be the only container running on a guest)
+    rancher.deactivate = false
+
+    # additional args to pass to docker when starting
+    # the server
+    rancher.server_args = "--restart always"
+
+    # labels to assign to the agent and resulting host
+    # in rancher
+    rancher.labels = ["environment=local"]
+  end
+end
