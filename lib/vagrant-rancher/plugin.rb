@@ -10,7 +10,7 @@ module VagrantPlugins
       name 'vagrant-rancher'
       description <<-DESC.gsub(/^ +/, '')
         Vagrant plugin to install a Rancher server
-        and agents on all vagrant guests.
+        and agents on all Vagrant guests.
       DESC
 
       action_hook(:init_i18n, :environment_load) { init_i18n }
