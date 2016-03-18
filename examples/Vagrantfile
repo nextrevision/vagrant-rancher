@@ -27,9 +27,8 @@ Vagrant.configure(2) do |config|
     # how to reach the rancher server api endpoint
     rancher.hostname = "192.168.33.100"
 
-    # this will not adjust the port rancher listens on
-    # yet, so changing this parameter will likely cause
-    # something to break
+    # port to run rancher server on and also connect over
+    # for agent communication
     rancher.port = 8080
 
     # version (tag) of the rancher server to deploy
