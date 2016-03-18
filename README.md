@@ -50,6 +50,13 @@ See examples directory. For a quick setup of a Rancher environment running on Ra
 
 * VirtualBox
 
+## Development
+
+```
+bundle install
+bundle exec vagrant ...
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/nextrevision/vagrant-rancher.
