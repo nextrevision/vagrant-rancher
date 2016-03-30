@@ -12,15 +12,11 @@ module VagrantPlugins
       def provision
         self.check_docker
 
-        if config.role == 'server'
-          self.install_server
-          self.configure_server
-        end
+        self.install_server if config.role == 'server'
 
-        if config.role == 'server' || config.role == 'agent'
-          self.install_agent
-          self.configure_agent
-        end
+        self.configure_server
+        self.install_agent
+        self.configure_agent
       end
 
       # determines if we can reach the docker daemon
@@ -65,9 +61,40 @@ module VagrantPlugins
 
       # configures a running server with the required settings
       def configure_server
-        # retrieve the default project id
-        project_id = @rancher.get_project_id
-        raise Errors::ProjectNotFound if project_id.nil?
+        # get the specified project
+        project_id = @rancher.get_project_id @config.project
+
+        # verify the project is of the correct type
+        unless project_id.nil?
+          recreate = false
+          project = @rancher.get_project project_id
+          if project['kubernetes'] and @config.project_type != 'kubernetes'
+            recreate = true
+          elsif project['swarm'] and @config.project_type != 'swarm'
+            recreate = true
+          elsif @config.project_type == 'cattle' and (project['kubernetes'] or project['swarm'])
+            recreate = true
+          end
+
+          # destroy the project and set project_id to nil when
+          # the project is not the specified type
+          if recreate
+            @rancher.delete_project project_id
+            project_id = nil
+          end
+        end
+
+        # create the project if it doesn't exist
+        if project_id.nil?
+          @machine.ui.detail "Project does not exist, creating now..."
+          @rancher.create_project @config.project, @config.project_type
+          project_id = @rancher.get_project_id @config.project
+          raise Errors::ProjectNotFound if project_id.nil?
+        end
+
+        # set the default project for the admin user
+        user_id = @rancher.get_admin_id
+        @rancher.set_default_project user_id, project_id
 
         # attempt to retrieve a registration token, otherwise create one
         unless @rancher.get_registration_token project_id
@@ -88,7 +115,7 @@ module VagrantPlugins
         # if the agent container is not running, start it
         unless @machine.communicate.test('sudo docker inspect rancher-agent')
           # retrieve the default project id
-          project_id = @rancher.get_project_id
+          project_id = @rancher.get_project_id @config.project
           raise Errors::ProjectNotFound if project_id.nil?
 
           # retrieve the registration token
@@ -119,7 +146,7 @@ module VagrantPlugins
           # wait for the agent to register the host in rancher (checks
           # for the @machine.id in the host labels)
           @machine.ui.detail 'Waiting for agent to register...'
-          unless @rancher.wait_for_agent @machine.id
+          unless @rancher.wait_for_agent project_id, @machine.id
             raise Errors::AgentRegistrationTimeout,
               :host => @config.hostname,
               :port => @config.port
@@ -130,7 +157,7 @@ module VagrantPlugins
       # configure the agent in rancher
       def configure_agent
         # retrieve the project id
-        project_id = @rancher.get_project_id
+        project_id = @rancher.get_project_id @config.project
         raise Errors::ProjectNotFound if project_id.nil?
 
         # retrieve the host by the @machine.id label

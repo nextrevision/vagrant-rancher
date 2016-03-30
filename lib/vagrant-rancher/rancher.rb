@@ -27,10 +27,7 @@ module VagrantPlugins
       end
 
       # waits for the agent to register the host
-      def wait_for_agent(machine_id)
-        project_id = self.get_project_id
-        raise Errors::ProjectNotFound if project_id.nil?
-
+      def wait_for_agent(project_id, machine_id)
         15.times do |i|
           host = self.get_host project_id, machine_id
           break unless host.nil?
@@ -42,20 +39,31 @@ module VagrantPlugins
       end
 
       # retrieves the Default project id
-      def get_project_id
+      def get_project_id(name)
         project_id = nil
 
         response = self.api '/v1/projects'
 
         unless response.nil? or response['data'].empty?
           response['data'].each do |project|
-            if project['name'] == 'Default'
+            if project['name'] == name
               project_id = project['id']
             end
           end
         end
 
         project_id
+      end
+
+      # retrieves and returns a project object
+      def get_project(project_id)
+        return self.api "/v1/projects/#{project_id}"
+      end
+
+      # retrieves and returns the id of the admin user
+      def get_admin_id
+        response = self.api '/v1/accounts?name=admin&kind=admin'
+        return response['data'][0]['id']
       end
 
       # retrieves a rancher host object
@@ -82,6 +90,55 @@ module VagrantPlugins
         nil
       end
 
+      # creates a new project
+      def create_project(name, type='cattle')
+        swarm = false
+        kubernetes = false
+
+        case type
+        when 'kubernetes'
+          kubernetes = true
+        when 'swarm'
+          swarm = true
+        end
+
+        data = {
+          'name'       => name,
+          'swarm'      => swarm,
+          'kubernetes' => kubernetes,
+          'publicDns'  => false,
+          'members'    => []
+        }
+        return self.api '/v1/project/', 'POST', nil, data
+      end
+
+      # sets the default project for a user
+      def set_default_project(user_id, project_id)
+        response = self.api "/v1/userpreferences?accountId=#{user_id}&name=defaultProjectId"
+
+        data = {
+          'name'      => 'defaultProjectId',
+          'value'     => project_id,
+          'kind'      => 'userPreference',
+          'type'      => 'userPreference',
+          'accountId' => user_id,
+        }
+
+        if response['data'].empty?
+          self.api '/v1/userpreferences/', 'POST', nil, data
+        else
+          preference_id = response['data'][0]['id']
+          self.api "/v1/userpreferences/#{preference_id}/?action=update", 'POST', nil, data
+        end
+      end
+
+      # deletes a project
+      def delete_project(project_id)
+        self.api "/v1/projects/#{project_id}/?action=delete", 'POST'
+        sleep 2
+        self.api "/v1/projects/#{project_id}/?action=purge", 'POST'
+      end
+
       # creates a registration token for a project
       def create_registration_token(project_id)
         headers = { 'x-api-project-id' => project_id }
@@ -96,7 +153,7 @@ module VagrantPlugins
       # deactivates a host in rancher to avoid being scheduled on
       def deactivate_host(project_id, host_id)
         headers = { 'x-api-project-id' => project_id }
-        self.api "/v1/projects/#{project_id}/hosts/#{host_id}/?action=deactivate", 'POST'
+        self.api "/v1/projects/#{project_id}/hosts/#{host_id}/?action=deactivate", 'POST', headers
       end
 
       protected

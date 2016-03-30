@@ -41,6 +41,8 @@ The `vagrant-rancher` plugin requires the hostname being set to either a DNS nam
 * `server_args` (*optional*, default: `''`): additional args to pass to the Docker run command when starting the Rancher server
 * `labels` (*optional*, default: `[]`): array of key=value pairs of labels to assign to the agent (ex. ["role=server","env=local"])
 * `deactivate` (*optional*, default: `false`): deactivate the host in Rancher to prevent it from being scheduled on
+* `project` (*optional*, default: `Default`): the project to start the agent in (project will be created if it doesn't exist)
+* `project_type` (*optional*, default: `cattle`): the project type (one of 'cattle', 'swarm', or 'kubernetes')
 
 ## Examples
 

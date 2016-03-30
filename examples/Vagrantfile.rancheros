@@ -20,6 +20,8 @@ Vagrant.configure(2) do |config|
 
     node.vm.provision :rancher do |rancher|
       rancher.hostname = "192.168.33.100"
+      rancher.project = "vagrant"
+      rancher.project_type = "swarm"
       rancher.deactivate = true
       rancher.labels = ["role=server"]
     end

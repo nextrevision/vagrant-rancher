@@ -8,6 +8,8 @@ module VagrantPlugins
       attr_accessor :deactivate
       attr_accessor :server_args
       attr_accessor :labels
+      attr_accessor :project
+      attr_accessor :project_type
 
       def initialize
         @role = UNSET_VALUE
@@ -17,6 +19,8 @@ module VagrantPlugins
         @server_args = UNSET_VALUE
         @labels = UNSET_VALUE
         @deactivate = UNSET_VALUE
+        @project = UNSET_VALUE
+        @project_type = UNSET_VALUE
       end
 
       def finalize!
@@ -27,6 +31,8 @@ module VagrantPlugins
         @server_args = nil if @server_args == UNSET_VALUE
         @labels = nil if @labels == UNSET_VALUE
         @deactivate = false if @deactivate == UNSET_VALUE
+        @project = 'Default' if @project == UNSET_VALUE
+        @project_type = 'cattle' if @project_type == UNSET_VALUE
       end
 
       def validate(_machine)
@@ -58,6 +64,14 @@ module VagrantPlugins
 
         unless deactivate.is_a?(TrueClass) || deactivate.is_a?(FalseClass)
           errors << ':rancher provisioner requires deactivate to be a bool'
+        end
+
+        unless project.is_a?(String) || project.nil?
+          errors << ':rancher provisioner requires project to be a string'
+        end
+
+        unless ['cattle', 'kubernetes', 'swarm'].include? project_type || project_type.nil?
+          errors << ':rancher provisioner requires project_type to be one of cattle, kubernetes or swarm'
         end
 
         { 'rancher provisioner' => errors }
