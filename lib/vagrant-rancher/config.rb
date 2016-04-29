@@ -6,6 +6,7 @@ module VagrantPlugins
       attr_accessor :hostname
       attr_accessor :port
       attr_accessor :deactivate
+      attr_accessor :rancher_server_image
       attr_accessor :server_args
       attr_accessor :labels
       attr_accessor :project
@@ -16,6 +17,7 @@ module VagrantPlugins
         @version = UNSET_VALUE
         @hostname = UNSET_VALUE
         @port = UNSET_VALUE
+        @rancher_server_image = UNSET_VALUE
         @server_args = UNSET_VALUE
         @labels = UNSET_VALUE
         @deactivate = UNSET_VALUE
@@ -28,6 +30,7 @@ module VagrantPlugins
         @version = 'latest' if @version == UNSET_VALUE
         @hostname = nil if @hostname == UNSET_VALUE
         @port = 8080 if @port == UNSET_VALUE
+        @rancher_server_image = 'rancher/server' if @rancher_server_image == UNSET_VALUE
         @server_args = nil if @server_args == UNSET_VALUE
         @labels = nil if @labels == UNSET_VALUE
         @deactivate = false if @deactivate == UNSET_VALUE
@@ -53,7 +56,11 @@ module VagrantPlugins
         unless port.is_a?(Fixnum) || port.is_a?(Fixnum)
           errors << ':rancher provisioner requires port to be a number'
         end
-
+        
+        unless rancher_server_image.is_a?(String) || rancher_server_image.nil?
+          errors << ':rancher provisioner requires rancher_server_image to be a string'
+        end
+        
         unless server_args.is_a?(String) || server_args.nil?
           errors << ':rancher provisioner requires server_args to be a string'
         end

@@ -31,7 +31,7 @@ module VagrantPlugins
       def install_server
         # check to see if the rancher server is already running
         unless @machine.communicate.test('sudo docker inspect rancher-server')
-          @machine.ui.info "Starting server container: rancher/server:#{config.version}..."
+          @machine.ui.info "Starting server container: #{config.rancher_server_image}:#{config.version}..."
 
           docker_cmd = "docker run -d -t --name rancher-server -p #{@config.port}:8080"
 
@@ -41,7 +41,7 @@ module VagrantPlugins
           end
 
           # start the server and error if there is a failure
-          unless @machine.communicate.sudo("#{docker_cmd} rancher/server:#{config.version}")
+          unless @machine.communicate.sudo("#{docker_cmd} #{config.rancher_server_image}:#{config.version}")
             @machine.ui.error 'Could not start Rancher server container'
             raise Errors::RancherServerContainer
           end
