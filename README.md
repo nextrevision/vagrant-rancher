@@ -38,7 +38,7 @@ The `vagrant-rancher` plugin requires the hostname being set to either a DNS nam
 * `role` (*optional*, default: `'server'`): either 'server' (to run the Rancher server) or 'agent' to only run the Rancher agent
 * `version` (*optional*, default: `'latest'`): version (tag) of the Rancher server container to run
 * `port` (*optional*, default: `8080`): port to run the rancher server on in the case of the server, and communicate with in the case of the agent
-* `rancher_image_name` (*optional*, default: `rancher/server`): Override default Rancher server image name. Allows for pull from a private registry
+* `rancher_server_image` (*optional*, default: `rancher/server`): Override default Rancher server image name. Allows for pull from a private registry
 * `server_args` (*optional*, default: `''`): additional args to pass to the Docker run command when starting the Rancher server
 * `labels` (*optional*, default: `[]`): array of key=value pairs of labels to assign to the agent (ex. ["role=server","env=local"])
 * `deactivate` (*optional*, default: `false`): deactivate the host in Rancher to prevent it from being scheduled on
