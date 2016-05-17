@@ -31,7 +31,19 @@ module VagrantPlugins
       def install_server
         # check to see if the rancher server is already running
         unless @machine.communicate.test('sudo docker inspect rancher-server')
-          @machine.ui.info "Starting server container: #{config.rancher_server_image}:#{config.version}..."
+          image = "#{config.rancher_server_image}:#{config.version}"
+
+          # pull rancher server image if its not already there
+          image_check_cmd = "sudo docker images | awk '{ print $1\":\"$2 }' | grep -q #{image}"
+          unless @machine.communicate.test(image_check_cmd)
+            @machine.ui.info "Pulling Rancher server image: #{image}..."
+            unless @machine.communicate.sudo("docker pull #{image}")
+              @machine.ui.error "Could not pull Rancher server image"
+              raise Errors::RancherServerContainer
+            end
+          end
+
+          @machine.ui.info "Starting server container: #{image}..."
 
           docker_cmd = "docker run -d -t --name rancher-server -p #{@config.port}:8080"
 
@@ -41,7 +53,7 @@ module VagrantPlugins
           end
 
           # start the server and error if there is a failure
-          unless @machine.communicate.sudo("#{docker_cmd} #{config.rancher_server_image}:#{config.version}")
+          unless @machine.communicate.sudo("#{docker_cmd} #{image}")
             @machine.ui.error 'Could not start Rancher server container'
             raise Errors::RancherServerContainer
           end
@@ -88,6 +100,7 @@ module VagrantPlugins
         if project_id.nil?
           @machine.ui.detail "Project does not exist, creating now..."
           @rancher.create_project @config.project, @config.project_type
+          sleep 2
           project_id = @rancher.get_project_id @config.project
           raise Errors::ProjectNotFound if project_id.nil?
         end
@@ -135,6 +148,16 @@ module VagrantPlugins
 
           extra_args = "-e 'CATTLE_HOST_LABELS=#{labels}' --name rancher-agent-bootstrap"
           docker_cmd = docker_cmd.sub('docker run', "docker run #{extra_args}")
+
+          # pull rancher agent image if its not already there
+          image_check_cmd = "sudo docker images | awk '{ print $1\":\"$2 }' | grep -q #{registration_token['image']}"
+          unless @machine.communicate.test(image_check_cmd)
+            @machine.ui.info "Pulling Rancher agent image: #{registration_token['image']}..."
+            unless @machine.communicate.sudo("docker pull #{registration_token['image']}")
+              @machine.ui.error "Could not pull Rancher agent image"
+              raise Errors::RancherServerContainer
+            end
+          end
 
           # start the agent container
           @machine.ui.info "Starting agent container: #{registration_token['image']}..."
