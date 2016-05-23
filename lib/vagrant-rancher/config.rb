@@ -8,6 +8,7 @@ module VagrantPlugins
       attr_accessor :deactivate
       attr_accessor :rancher_server_image
       attr_accessor :server_args
+      attr_accessor :install_agent
       attr_accessor :labels
       attr_accessor :project
       attr_accessor :project_type
@@ -19,6 +20,7 @@ module VagrantPlugins
         @port = UNSET_VALUE
         @rancher_server_image = UNSET_VALUE
         @server_args = UNSET_VALUE
+        @install_agent = UNSET_VALUE
         @labels = UNSET_VALUE
         @deactivate = UNSET_VALUE
         @project = UNSET_VALUE
@@ -32,6 +34,7 @@ module VagrantPlugins
         @port = 8080 if @port == UNSET_VALUE
         @rancher_server_image = 'rancher/server' if @rancher_server_image == UNSET_VALUE
         @server_args = nil if @server_args == UNSET_VALUE
+        @install_agent = true if @install_agent == UNSET_VALUE
         @labels = nil if @labels == UNSET_VALUE
         @deactivate = false if @deactivate == UNSET_VALUE
         @project = 'Default' if @project == UNSET_VALUE
@@ -56,13 +59,17 @@ module VagrantPlugins
         unless port.is_a?(Fixnum) || port.is_a?(Fixnum)
           errors << ':rancher provisioner requires port to be a number'
         end
-        
+
         unless rancher_server_image.is_a?(String) || rancher_server_image.nil?
           errors << ':rancher provisioner requires rancher_server_image to be a string'
         end
-        
+
         unless server_args.is_a?(String) || server_args.nil?
           errors << ':rancher provisioner requires server_args to be a string'
+        end
+
+        unless install_agent.is_a?(TrueClass) || install_agent.is_a?(FalseClass)
+          errors << ':rancher provisioner requires install_agent to be a bool'
         end
 
         unless labels.is_a?(Array) || labels.nil?
