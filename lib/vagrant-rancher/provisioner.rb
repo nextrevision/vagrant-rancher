@@ -15,8 +15,11 @@ module VagrantPlugins
         self.install_server if config.role == 'server'
 
         self.configure_server
-        self.install_agent
-        self.configure_agent
+
+        if config.install_agent
+          self.install_agent
+          self.configure_agent
+        end
       end
 
       # determines if we can reach the docker daemon
