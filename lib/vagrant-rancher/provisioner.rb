@@ -48,7 +48,7 @@ module VagrantPlugins
 
           @machine.ui.info "Starting server container: #{image}..."
 
-          docker_cmd = "docker run -d -t --name rancher-server -p #{@config.port}:8080"
+          docker_cmd = "docker run -d --restart=always --name rancher-server -p #{@config.port}:8080"
 
           # add any user supplied args to the docker command
           unless config.server_args.nil?
