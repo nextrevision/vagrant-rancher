@@ -150,12 +150,11 @@ module VagrantPlugins
           end
 
           extra_args = "-e 'CATTLE_HOST_LABELS=#{labels}' --name rancher-agent-bootstrap"
-          docker_cmd = docker_cmd.sub('docker run', "docker run #{extra_args}")
-
-          # add any user supplied args to the docker command
           unless config.agent_args.nil?
-            docker_cmd = "#{docker_cmd} #{config.agent_args}"
+            extra_args = "#{extra_ags} #{config.agent_args}"
           end
+
+          docker_cmd = docker_cmd.sub('docker run', "docker run #{extra_args}")
 
           # pull rancher agent image if its not already there
           image_check_cmd = "sudo docker images | awk '{ print $1\":\"$2 }' | grep -q #{registration_token['image']}"
